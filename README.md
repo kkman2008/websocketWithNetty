@@ -2,11 +2,15 @@
 基于netty搭建websocket服务器
 > netty是由jboss提供的一款开源框架，常用于搭建RPC中的TCP服务器、websocket服务器，甚至是类似tomcat的web服务器，反正就是各种网络服务器，在处理高并发的项目中，有奇用！功能丰富且性能良好，基于java中NIO的二次封装，具有比原生NIO更好更稳健的体验。
 ## netty的核心架构
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222155103782.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
+![img](./format,png.jpeg)
+
+
+
 官网给出的底层示意图：
-![](https://netty.io/images/components.png)
+![](./components.png)
+
 ## 1.项目结构
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222155242720.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
+![在这里插入图片描述](./watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70.png)
 一个普通的maven项目即可
 
  - 核心依赖：
@@ -74,11 +78,10 @@ netty搭建的服务器基本上都是差不多的写法：
    
  - 配置channel（数据通道）参数，重点就是`ChannelInitializer`的配置
 
-   
  - 以异步的方式启动，最后是结束关闭两个线程组
 
  2.ChannelInitializer写法
- 
+
 
 ```java
 public class NioWebSocketChannelInitializer extends ChannelInitializer<SocketChannel> {
@@ -208,10 +211,10 @@ public class NioWebSocketHandler extends SimpleChannelInboundHandler<Object> {
  - 在`handleHttpRequest`方法中去创建websocket，首先是判断`Upgrade`是不是websocket协议，若不是则通过`sendHttpResponse`将错误信息返回给客户端，紧接着通过`WebSocketServerHandshakerFactory`创建socket对象并通过handshaker握手创建连接
  - 在连接创建好后的所以消息流动都是以`WebSocketFrame`来体现
  - 在`handlerWebSocketFrame`去处理消息，也可能是客户端发起的关闭指令，ping指令等等
- 
+
  4.保存客户端的信息
  当有客户端连接时候会被`channelActive`监听到，当断开时会被`channelInactive`监听到，一般在这两个方法中去保存/移除客户端的通道信息，而通道信息保存在`ChannelSupervise`中：
- 
+
 
 ```java
 public class ChannelSupervise {
@@ -237,9 +240,9 @@ ChannelGroup是netty提供用于管理web于服务器建立的通道channel的�
 
  为什么不能人为创建channelId：
  1.channelId是实现类`DefaultChannelId`这一点可以通过debug它的find发现：
- ![在这里插入图片描述](https://img-blog.csdnimg.cn/2019022216352537.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
+ ![在这里插入图片描述](./watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70-20200210075209355.png)
  而DefaultChannelId中不提供任何修改channelId的操作，并且由final修飾不能被继承：
- ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222163727798.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
+ ![在这里插入图片描述](./watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70-20200210075217107.png)
 而我们获取的字符串形式的channelId实际上是它创建时候通过一定的算法生成的。
 
 > 想要获取channel信息还是老老实实的封装一个map去维护字符串形式的id于channel的对应关系吧。
@@ -313,7 +316,7 @@ Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
 content-length: 0
 ```
 主要是`Upgrade: websocket`。如果直接在浏览器输入http://localhost:8081/websocket
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222164746263.png)
+![在这里插入图片描述](./20190222164746263.png)
 后台输出：
 
 ```
@@ -330,13 +333,14 @@ content-length: 0
 ```
 对比可以发现请求头中缺少很多websocket的内容
 而浏览器相应到的bad reques对应`NioWebSocketHandler`的`sendHttpResponse`的最后一个参数：
-![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222165053233.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
+![在这里插入图片描述](./watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70-20200210075237607.png)
 发送消息后：
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222165325661.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
 前端收到服务端推送的消息后：
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/20190222165658195.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzI0ODc0OTM5,size_16,color_FFFFFF,t_70)
 前端需要在方法`websocket.onmessage=function(messageEvent){}`通过messageEvent.data捕获消息
+
 > 代码下载地址：https://github.com/Siwash/websocketWithNetty
 
 
- 
+
